@@ -222,7 +222,7 @@ post '/create_payment_intent' do
         :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
       }.merge(payload[:metadata] || {}),
     }, {
-	  :stripe_account => 'connect_account_id'
+	  :stripe_account => ENV['CONNECT_ACCOUNT_ID']
 	})
   rescue Stripe::StripeError => e
     status 402
