@@ -210,15 +210,17 @@ post '/create_payment_intent' do
   end
 
   # Calculate how much to charge the customer
-  amount = calculate_price(payload[:products], payload[:shipping])
+  #amount = calculate_price(payload[:products], payload[:shipping])
 
   begin
     payment_intent = Stripe::PaymentIntent.create({
-      :amount => amount,
+      :amount => payload[:amount],
+      :receipt_email => payload[:receipt_email],
       :currency => 'usd',
       :customer => payload[:customer_id] || @customer.id,
       :description => "Example PaymentIntent",
       :capture_method => ENV['CAPTURE_METHOD'] == "manual" ? "manual" : "automatic",
+      on_behalf_of: ENV['CONNECT_ACCOUNT_ID'],
       :metadata => {
         :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
       }.merge(payload[:metadata] || {}),
@@ -230,6 +232,7 @@ post '/create_payment_intent' do
     return log_info("Error creating PaymentIntent: #{e.message}")
   end
 
+  log_info("PaymentIntent successfully created payment_intent : #{payment_intent}, ENV['CONNECT_ACCOUNT_ID'] : s#{ENV['CONNECT_ACCOUNT_ID']}s")
   log_info("PaymentIntent successfully created: #{payment_intent.id}")
   status 200
   return {
@@ -263,7 +266,7 @@ post '/confirm_payment_intent' do
       amount = calculate_price(payload[:products], payload[:shipping])
 
       # Create and confirm the PaymentIntent
-      payment_intent = Stripe::PaymentIntent.create(
+      payment_intent = Stripe::PaymentIntent.create({
         :amount => amount,
         :currency => 'usd',
         :customer => payload[:customer_id] || @customer.id,
@@ -281,7 +284,9 @@ post '/confirm_payment_intent' do
         :metadata => {
           :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
         }.merge(payload[:metadata] || {}),
-      )
+       }, {
+          :stripe_account => ENV['CONNECT_ACCOUNT_ID'],
+        })
     else
       status 400
       return log_info("Error: Missing params. Pass payment_intent_id to confirm or payment_method to create")
@@ -292,6 +297,29 @@ post '/confirm_payment_intent' do
   end
 
   return generate_payment_response(payment_intent)
+end
+
+post '/charge' do
+
+  payload = params
+  if request.content_type.include? 'application/json' and params.empty?
+    payload = indifferent_params(JSON.parse(request.body.read))
+  end
+
+  begin
+    charge = Stripe::Charge.create(
+      :amount => payload[:amount],
+      :currency => payload[:currency],
+      :source => payload[:token],
+      :description => payload[:description]
+    )
+  rescue Stripe::StripeError => e
+    status 402
+    return "Error creating charge: #{e.message}"
+  end
+
+  status 200
+  return "Charge successfully created"
 end
 
 def generate_payment_response(payment_intent)
