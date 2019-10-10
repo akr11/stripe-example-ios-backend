@@ -220,7 +220,7 @@ post '/create_payment_intent' do
       :customer => payload[:customer_id] || @customer.id,
       :description => "Example PaymentIntent",
       :capture_method => ENV['CAPTURE_METHOD'] == "manual" ? "manual" : "automatic",
-      on_behalf_of: ENV['CONNECT_ACCOUNT_ID'],
+     # on_behalf_of: ENV['CONNECT_ACCOUNT_ID'],
       :metadata => {
         :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
       }.merge(payload[:metadata] || {}),
