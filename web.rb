@@ -218,7 +218,7 @@ post '/create_payment_intent' do
       :amount => payload[:amount],
       :receipt_email => payload[:receipt_email],
       :currency => 'usd',
-      :customer => payload[:customer_id] || @customer.id,
+      #:customer => payload[:customer_id] || @customer.id,
       :description => "Example PaymentIntent",
       :capture_method => ENV['CAPTURE_METHOD'] == "manual" ? "manual" : "automatic",
      # on_behalf_of: ENV['CONNECT_ACCOUNT_ID'],
