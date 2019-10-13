@@ -59,7 +59,7 @@ def authenticate!
         @customer = create_customer()
 
         # Attach some test cards to the customer for testing convenience.
-        # See https://stripe.com/docs/payments/3d-secure#three-ds-cards 
+        # See https://stripe.com/docs/payments/3d-secure#three-ds-cards
         # and https://stripe.com/docs/mobile/android/authentication#testing
         ['4000000000003220', '4000000000003063', '4000000000003238', '4000000000003246', '4000000000003253', '4242424242424242'].each { |cc_number|
           payment_method = Stripe::PaymentMethod.create({
@@ -141,7 +141,7 @@ post '/stripe-webhook' do
       rescue Stripe::StripeError => e
         status 400
         return log_info("Webhook: Error creating PaymentIntent: #{e.message}")
-      end 
+      end
       return log_info("Webhook: Created PaymentIntent for source: #{payment_intent.id}")
     end
   when 'payment_intent.succeeded'
@@ -163,7 +163,7 @@ post '/stripe-webhook' do
   status 200
 end
 
-# ==== SetupIntent 
+# ==== SetupIntent
 # See https://stripe.com/docs/payments/cards/saving-cards-without-payment
 
 # This endpoint is used by the mobile example apps to create a SetupIntent.
@@ -218,7 +218,7 @@ post '/create_payment_intent' do
       :amount => payload[:amount],
       :receipt_email => payload[:receipt_email],
       :currency => 'usd',
-      #:customer => payload[:customer_id] || @customer.id,
+      :customer => payload[:customer_id] || @customer.id,
       :description => "Example PaymentIntent",
       :capture_method => ENV['CAPTURE_METHOD'] == "manual" ? "manual" : "automatic",
      # on_behalf_of: ENV['CONNECT_ACCOUNT_ID'],
@@ -243,11 +243,11 @@ post '/create_payment_intent' do
   }.to_json
 end
 
-# ===== PaymentIntent Manual Confirmation 
+# ===== PaymentIntent Manual Confirmation
 # See https://stripe.com/docs/payments/payment-intents/ios-manual
 
-# This endpoint is used by the mobile example apps to create and confirm a PaymentIntent 
-# using manual confirmation. 
+# This endpoint is used by the mobile example apps to create and confirm a PaymentIntent
+# using manual confirmation.
 # https://stripe.com/docs/api/payment_intents/create
 # https://stripe.com/docs/api/payment_intents/confirm
 # A real implementation would include controls to prevent misuse
@@ -278,9 +278,9 @@ post '/confirm_payment_intent' do
         :return_url => payload[:return_url],
         :confirm => true,
         :confirmation_method => "manual",
-        # Set use_stripe_sdk for mobile apps using Stripe iOS SDK v16.0.0+ or Stripe Android SDK v10.0.0+ 
+        # Set use_stripe_sdk for mobile apps using Stripe iOS SDK v16.0.0+ or Stripe Android SDK v10.0.0+
         # Do not set this on apps using Stripe SDK versions below this.
-        :use_stripe_sdk => true, 
+        :use_stripe_sdk => true,
         :capture_method => ENV['CAPTURE_METHOD'] == "manual" ? "manual" : "automatic",
         :metadata => {
           :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
@@ -291,7 +291,7 @@ post '/confirm_payment_intent' do
     else
       status 400
       return log_info("Error: Missing params. Pass payment_intent_id to confirm or payment_method to create")
-    end 
+    end
   rescue Stripe::StripeError => e
     status 402
     return log_info("Error: #{e.message}")
@@ -333,7 +333,7 @@ def generate_payment_response(payment_intent)
       requires_action: true,
       secret: payment_intent.client_secret
     }.to_json
-  elsif payment_intent.status == 'succeeded' or 
+  elsif payment_intent.status == 'succeeded' or
     (payment_intent.status == 'requires_capture' and ENV['CAPTURE_METHOD'] == "manual")
     # The payment didn’t need any additional actions and is completed!
     # Handle post-payment fulfillment
