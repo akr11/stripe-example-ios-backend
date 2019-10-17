@@ -23,79 +23,79 @@ get '/' do
   return log_info("Great, your backend is set up. Now you can configure the Stripe example apps to point here.")
 end
 
-# post '/ephemeral_keys' do
-#   authenticate!
-#   begin
-#     key = Stripe::EphemeralKey.create(
-#       {customer: @customer.id},
-#       {stripe_version: params["api_version"]}
-#     )
-#   rescue Stripe::StripeError => e
-#     status 402
-#     return log_info("Error creating ephemeral key: #{e.message}")
-#   end
-#
-#   content_type :json
-#   status 200
-#   key.to_json
-# end
-#
-# def authenticate!
-#   # This code simulates "loading the Stripe customer for your current session".
-#   # Your own logic will likely look very different.
-#   return @customer if @customer
-#   if session.has_key?(:customer_id)
-#     customer_id = session[:customer_id]
-#     begin
-#       @customer = Stripe::Customer.retrieve(customer_id)
-#     rescue Stripe::InvalidRequestError
-#     end
-#   else
-#     default_cusomer_id = ENV['DEFAULT_CUSTOMER_ID']
-#     if default_cusomer_id
-#       @customer = Stripe::Customer.retrieve(default_cusomer_id)
-#     else
-#       begin
-#         @customer = create_customer()
-#
-#         # Attach some test cards to the customer for testing convenience.
-#         # See https://stripe.com/docs/payments/3d-secure#three-ds-cards
-#         # and https://stripe.com/docs/mobile/android/authentication#testing
-#         ['4000000000003220', '4000000000003063', '4000000000003238', '4000000000003246', '4000000000003253', '4242424242424242'].each { |cc_number|
-#           payment_method = Stripe::PaymentMethod.create({
-#             type: 'card',
-#             card: {
-#               number: cc_number,
-#               exp_month: 8,
-#               exp_year: 2022,
-#               cvc: '123',
-#             },
-#           })
-#
-#           Stripe::PaymentMethod.attach(
-#             payment_method.id,
-#             {
-#               customer: @customer.id,
-#             }
-#           )
-#         }
-#       rescue Stripe::InvalidRequestError
-#       end
-#     end
-#     session[:customer_id] = @customer.id
-#   end
-#   @customer
-# end
-#
-# def authenticate
-#   Stripe::Customer.create(
-#     :description => 'mobile SDK example customer',
-#     :metadata => {
-#       # Add our application's customer id for this Customer, so it'll be easier to look up
-#       :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
-#     },
-#   )
-# end
+post '/ephemeral_keys' do
+  authenticate!
+  begin
+    key = Stripe::EphemeralKey.create(
+      {customer: @customer.id},
+      {stripe_version: params["api_version"]}
+    )
+  rescue Stripe::StripeError => e
+    status 402
+    return log_info("Error creating ephemeral key: #{e.message}")
+  end
+
+  content_type :json
+  status 200
+  key.to_json
+end
+
+def authenticate!
+  # This code simulates "loading the Stripe customer for your current session".
+  # Your own logic will likely look very different.
+  return @customer if @customer
+  if session.has_key?(:customer_id)
+    customer_id = session[:customer_id]
+    begin
+      @customer = Stripe::Customer.retrieve(customer_id)
+    rescue Stripe::InvalidRequestError
+    end
+  else
+    default_cusomer_id = ENV['DEFAULT_CUSTOMER_ID']
+    if default_cusomer_id
+      @customer = Stripe::Customer.retrieve(default_cusomer_id)
+    else
+      begin
+        @customer = create_customer()
+
+        # Attach some test cards to the customer for testing convenience.
+        # See https://stripe.com/docs/payments/3d-secure#three-ds-cards
+        # and https://stripe.com/docs/mobile/android/authentication#testing
+        ['4000000000003220', '4000000000003063', '4000000000003238', '4000000000003246', '4000000000003253', '4242424242424242'].each { |cc_number|
+          payment_method = Stripe::PaymentMethod.create({
+            type: 'card',
+            card: {
+              number: cc_number,
+              exp_month: 8,
+              exp_year: 2022,
+              cvc: '123',
+            },
+          })
+
+          Stripe::PaymentMethod.attach(
+            payment_method.id,
+            {
+              customer: @customer.id,
+            }
+          )
+        }
+      rescue Stripe::InvalidRequestError
+      end
+    end
+    session[:customer_id] = @customer.id
+  end
+  @customer
+end
+
+def authenticate
+  Stripe::Customer.create(
+    :description => 'mobile SDK example customer',
+    :metadata => {
+      # Add our application's customer id for this Customer, so it'll be easier to look up
+      :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
+    },
+  )
+end
 
 # This endpoint responds to webhooks sent by Stripe. To use it, you'll need
 # to add its URL (https://{your-app-name}.herokuapp.com/stripe-webhook)
@@ -203,7 +203,7 @@ end
 # https://stripe.com/docs/api/payment_intents/create
 # A real implementation would include controls to prevent misuse
 post '/create_payment_intent' do
-  #authenticate!
+  authenticate!
   payload = params
 
   if request.content_type != nil and request.content_type.include? 'application/json' and params.empty?
@@ -252,7 +252,7 @@ end
 # https://stripe.com/docs/api/payment_intents/confirm
 # A real implementation would include controls to prevent misuse
 post '/confirm_payment_intent' do
-  #authenticate!
+  authenticate!
   payload = params
   if request.content_type.include? 'application/json' and params.empty?
     payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
