@@ -33,6 +33,8 @@ post '/ephemeral_keys' do
   rescue Stripe::StripeError => e
     status 402
     return log_info("Error creating ephemeral key: #{e.message}")
+    status 503
+    return log_info("Error creating ephemeral key: #{e.message}")
   end
 
   content_type :json
