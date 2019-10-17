@@ -216,7 +216,7 @@ post '/create_payment_intent' do
   #amount = calculate_price(payload[:products], payload[:shipping])
 
   begin
-    payment_intent = Stripe::PaymentIntent.create({
+    payment_intent = Stripe::PaymentIntent.create(#{
       :amount => payload[:amount],
       :receipt_email => payload[:receipt_email],
       :currency => 'usd',
