@@ -218,7 +218,7 @@ post '/create_payment_intent' do
   #amount = calculate_price(payload[:products], payload[:shipping])
 
   begin
-    payment_intent = Stripe::PaymentIntent.create(#{
+    payment_intent = Stripe::PaymentIntent.create({
       :amount => payload[:amount],
       :receipt_email => payload[:receipt_email],
       :currency => 'usd',
@@ -229,9 +229,9 @@ post '/create_payment_intent' do
       :metadata => {
         :order_id => '5278735C-1F40-407D-933A-286E463E72D8',
       }.merge(payload[:metadata] || {}),
-  #   }, {
-	#   :stripe_account => ENV['CONNECT_ACCOUNT_ID']
-	# }
+     }, {
+	   :stripe_account => ENV['CONNECT_ACCOUNT_ID']
+	 }
 )
   rescue Stripe::StripeError => e
     status 402
